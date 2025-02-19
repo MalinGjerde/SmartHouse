@@ -11,6 +11,40 @@ class Measurement:
 
 
 # TODO: Add your own classes here!
+class Level:
+
+    def __init__(self, number, size):
+        self.number = number
+        self.size = size
+
+class Rom:
+
+    def __init__(self, name, size):
+        self.name = name
+        self.size = size
+
+class Device:
+
+    def __init__(self, id, name, producer, unit, description_name):
+        self.id = id
+        self.name = name
+        self.producer = producer
+        self.unit = unit
+        self.description_name = description_name
+
+class Actuator(Device):
+
+    def __init__(self, type, state, id, name, producer, unit, description_name):
+        super().__init__(id, name, producer, unit, description_name)
+        self.type = type
+        self.state = state
+
+
+class Sensor(Device):
+    def __init__(self, type, value, id, name, unit, producer, description_name):
+        super().__init__(id, name, producer, unit, description_name)
+        self.type = type
+        self.value = value
 
 
 class SmartHouse:
