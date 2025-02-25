@@ -8,9 +8,6 @@ class Measurement:
         self.value = value
         self.unit = unit
 
-
-
-# TODO: Add your own classes here!
 class Level:
 
     def __init__(self, number, size):
@@ -38,7 +35,6 @@ class Actuator(Device):
         super().__init__(id, name, producer, unit, description_name)
         self.type = type
         self.state = state
-
 
 class Sensor(Device):
     def __init__(self, type, value, id, name, unit, producer, description_name):
