@@ -27,12 +27,13 @@ class Rom:
 
 class Device:
 
-    def __init__(self, id, name, producer, unit, description_name):
+    def __init__(self, id, supplier, model_name, device_type, room):
         self.id = id
-        self.name = name
-        self.producer = producer
-        self.unit = unit
-        self.description_name = description_name
+        self.model_name = model_name
+        self.supplier = supplier
+        self.device_type = device_type
+        self.room = room
+        
 
 class Actuator(Device):
 
@@ -61,6 +62,7 @@ class SmartHouse:
     def __init__(self):
         self.floors = []  
         self.rooms = []   
+        self.devices = []  
 
 
 
@@ -110,16 +112,25 @@ class SmartHouse:
         return sum(room.size for room in self.rooms)
 
 
-    def register_device(self, room, device):
+    def register_device(self, id, supplier, model_name, device_type, room):
         """
         This methods registers a given device in a given room.
         """
-        pass
+        new_device = Device(id, supplier, model_name, device_type, room )
+        room.devices.append(new_device)
+        self.devices.append(new_device)
+        return new_device
+    
+    def get_devices(self):
+        """
+        This method retrieves a device object via its id.
+        """
+        return self.devices
 
     
     def get_device(self, device_id):
         """
         This method retrieves a device object via its id.
         """
-        pass
+        return self.devices
 

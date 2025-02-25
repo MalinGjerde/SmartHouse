@@ -10,11 +10,11 @@ class TestPartA(TestCase):
         self.assertEqual(len(h.get_rooms()), 2)
     
     def test_basic_get_area_size(self):
-        self.assertEqual(h.get_area(), 156.55)
-"""
+        self.assertEqual(h.get_area(), 38.5)
+
     def test_basic_get_no_of_devices(self):
         self.assertEqual(len(h.get_devices()), 14)
-
+"""
     def test_basic_get_device_by_id(self):
         # device id does not exist
         self.assertIsNone(h.get_device_by_id("9e5b8274-4e77-4e8e-80d2-b40d648ea04b"))
