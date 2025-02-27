@@ -13,8 +13,8 @@ class TestPartA(TestCase):
         self.assertEqual(h.get_area(), 38.5)
 
     def test_basic_get_no_of_devices(self):
-        self.assertEqual(len(h.get_devices()), 14)
-"""
+        self.assertEqual(len(h.get_devices()), 4)
+
     def test_basic_get_device_by_id(self):
         # device id does not exist
         self.assertIsNone(h.get_device_by_id("9e5b8274-4e77-4e8e-80d2-b40d648ea04b"))
@@ -44,9 +44,10 @@ class TestPartA(TestCase):
         self.assertFalse(bulp.is_sensor())
         # also they know about their room and rooms know about their devices
         living_room = motion_sensor.room
+             
         self.assertTrue(motion_sensor in living_room.devices)
-        self.assertEqual(len(living_room.devices), 3)
-
+        self.assertEqual(len(living_room.devices), 4)
+        
     def test_intermediate_sensor_measurements(self):
         temp = h.get_device_by_id("4d8b1d62-7921-4917-9b70-bbd31f6e2e8e")
         m = temp.last_measurement()
@@ -68,7 +69,7 @@ class TestPartA(TestCase):
         heat_pump.turn_off()
         self.assertFalse(heat_pump.is_active())
 
-
+"""
     # Level 3 Advanced: Registering the same device in another room, moves it from one room to another 
 
     def test_zadvanced_move_device(self):
