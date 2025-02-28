@@ -1,4 +1,4 @@
-from domain import SmartHouse
+from smarthouse.domain import SmartHouse
 
 DEMO_HOUSE = SmartHouse()
 
