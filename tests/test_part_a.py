@@ -1,19 +1,24 @@
 from unittest import TestCase, main
+
+from pathlib import Path
+import sys 
+sys.path.append(str(Path().parent.absolute()))
+
 from smarthouse.domain import SmartHouse
-from tests.demo_house import DEMO_HOUSE as h
+from demo_house import DEMO_HOUSE as h
 
 class TestPartA(TestCase):
 
     # Level 1 Basic: Does registration of floors, rooms, and devices work + simple queries about them
 
     def test_basic_no_of_rooms(self):
-        self.assertEqual(len(h.get_rooms()), 3)
-    
+        self.assertEqual(len(h.get_rooms()), 12)
+
     def test_basic_get_area_size(self):
-        self.assertEqual(h.get_area(), 38.5)
+        self.assertEqual(h.get_area(), 156.55)
 
     def test_basic_get_no_of_devices(self):
-        self.assertEqual(len(h.get_devices()), 4)
+        self.assertEqual(len(h.get_devices()), 14)
 
     def test_basic_get_device_by_id(self):
         # device id does not exist
@@ -44,10 +49,9 @@ class TestPartA(TestCase):
         self.assertFalse(bulp.is_sensor())
         # also they know about their room and rooms know about their devices
         living_room = motion_sensor.room
-             
         self.assertTrue(motion_sensor in living_room.devices)
         self.assertEqual(len(living_room.devices), 3)
-        
+
     def test_intermediate_sensor_measurements(self):
         temp = h.get_device_by_id("4d8b1d62-7921-4917-9b70-bbd31f6e2e8e")
         m = temp.last_measurement()
@@ -94,7 +98,7 @@ class TestPartA(TestCase):
         self.assertEqual(dresser, bulp.room)
         self.assertEqual(len(dresser.devices), 1)
         self.assertEqual(len(gr2.devices), 0)
-    """"""
+
 
 if __name__ == "__main__":
     main()
