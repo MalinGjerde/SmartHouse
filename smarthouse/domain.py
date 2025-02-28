@@ -148,6 +148,7 @@ class SmartHouse:
             new_device.room = room
 
         room.devices.append(new_device)
+
         print(new_device.device_type, 'registered')
 
         return new_device
