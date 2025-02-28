@@ -21,7 +21,7 @@ class Level:
 class Rom:
 
     def __init__(self, name, size, floor):
-        self.name = name
+        self.room_name = name
         self.size = size
         self.floor = floor
         self.devices = []
@@ -36,20 +36,38 @@ class Device:
         self.device_type = device_type
         self.room = room
 
+    def is_sensor(self):
+        return isinstance(self, Sensor)
+
+    def is_actuator(self):
+        return isinstance(self, Actuator)
+
 
 class Actuator(Device):
 
-    def __init__(self, type, state, id, name, producer, unit, description_name):
-        super().__init__(id, name, producer, unit, description_name)
-        self.type = type
-        self.state = state
+    def __init__(self, id, supplier, model_name, device_type, room, ):
+        super().__init__(id, supplier, model_name, device_type, room)
+        self.is_on = False
+        self.value = 0
+
+    def turn_on(self, value=0):
+        self.is_on = True
+        self.value = value
+
+    def turn_off(self):
+        self.is_on = False
+
+    def is_active(self):
+        return self.is_on
 
 
 class Sensor(Device):
-    def __init__(self, type, value, id, name, unit, producer, description_name):
-        super().__init__(id, name, producer, unit, description_name)
-        self.type = type
-        self.value = value
+    def __init__(self, id, supplier, model_name, device_type, room, ):
+        super().__init__(id, supplier, model_name, device_type, room)
+
+    def last_measurement(self):
+        mesurment = Measurement("20.22", 130.0, "°C")
+        return mesurment
 
 
 class SmartHouse:
@@ -74,6 +92,7 @@ class SmartHouse:
         """
         new_floor = Level(level, 0)
         self.floors.append(new_floor)
+        print('floor', new_floor.number , 'registered')
         return new_floor
 
     def register_room(self, floor, room_size, room_name=None):
@@ -84,6 +103,7 @@ class SmartHouse:
         new_room = Rom(room_name, room_size, floor)
         floor.rooms.append(new_room)  # Add room to the floor
         self.rooms.append(new_room)  # Track all rooms in the house
+        print(new_room.room_name, 'registered')
         return new_room
 
     def get_floors(self):
@@ -108,13 +128,28 @@ class SmartHouse:
         """
         return sum(room.size for room in self.rooms)
 
-    def register_device(self, id, supplier, model_name, device_type, room):
+    def register_device(self, room, model_name, id=None, supplier=None, device_type=None, type=None):
         """
         This methods registers a given device in a given room.
         """
-        new_device = Device(id, supplier, model_name, device_type, room)
+
+        if type == "sensor":
+            new_device = Sensor(id, supplier, model_name, device_type, room)
+            self.devices.append(new_device)
+        elif type == "actuator":
+            new_device = Actuator(id, supplier, model_name, device_type, room)
+            self.devices.append(new_device)
+        else:
+            new_device = model_name
+
+            if new_device in new_device.room.devices:
+                new_device.room.devices.remove(new_device)
+
+            new_device.room = room
+
         room.devices.append(new_device)
-        self.devices.append(new_device)
+        print(new_device.device_type, 'registered')
+
         return new_device
 
     def get_devices(self):
@@ -123,9 +158,13 @@ class SmartHouse:
         """
         return self.devices
 
-    def get_device(self, device_id):
+    def get_device_by_id(self, device_id):
         """
         This method retrieves a device object via its id.
         """
-        return self.devices
+
+        for device in self.devices:
+            if device.id == device_id:
+                return device
+        return None
 
