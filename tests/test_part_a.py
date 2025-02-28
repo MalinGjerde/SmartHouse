@@ -13,7 +13,6 @@ class TestPartA(TestCase):
 
     def test_basic_get_no_of_devices(self):
         self.assertEqual(len(h.get_devices()), 14)
-"""
     def test_basic_get_device_by_id(self):
         # device id does not exist
         self.assertIsNone(h.get_device_by_id("9e5b8274-4e77-4e8e-80d2-b40d648ea04b"))
@@ -92,7 +91,6 @@ class TestPartA(TestCase):
         self.assertEqual(dresser, bulp.room)
         self.assertEqual(len(dresser.devices), 1)
         self.assertEqual(len(gr2.devices), 0)
-    """
 
 if __name__ == "__main__":
     main()
