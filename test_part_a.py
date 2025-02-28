@@ -1,6 +1,6 @@
 from unittest import TestCase, main
-from domain import SmartHouse
-from demo_house import DEMO_HOUSE as h
+from smarthouse.domain import SmartHouse
+from tests.demo_house import DEMO_HOUSE as h
 
 class TestPartA(TestCase):
 
