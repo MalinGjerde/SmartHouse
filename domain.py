@@ -22,7 +22,7 @@ class Rom:
 
     def __init__(self, name, size, floor):
         
-        self.name = name
+        self.room_name = name
         self.size = size
         self.floor = floor  
         self.devices = []
@@ -141,19 +141,28 @@ class SmartHouse:
         return sum(room.size for room in self.rooms)
 
 
-    def register_device(self, id, supplier, model_name, device_type, type, room):
+    def register_device(self,room,model_name ,id = None, supplier = None, device_type = None, type = None):
         """
         This methods registers a given device in a given room.
         """
 
         if type == "sensor":
             new_device = Sensor(id, supplier, model_name, device_type, room )
+            self.devices.append(new_device)
         elif type == "actuator":
             new_device = Actuator(id, supplier, model_name, device_type, room )
+            self.devices.append(new_device)
+        else:
+            new_device = model_name
+            
+            if new_device in new_device.room.devices:
+                new_device.room.devices.remove(new_device)
+            
+            new_device.room = room
 
-        
+            
         room.devices.append(new_device)
-        self.devices.append(new_device)
+        
         return new_device
     
     def get_devices(self):
