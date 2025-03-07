@@ -94,6 +94,4 @@ class SmartHouseRepository:
 
 repo = SmartHouseRepository("smarthouse/db.sql")
 cursor = repo.cursor()
-cursor.execute("SELECT * FROM devices")
-print(cursor.fetchall())
-cursor.close()
+cursor.close()cursor.close()
