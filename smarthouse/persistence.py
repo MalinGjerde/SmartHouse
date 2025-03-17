@@ -3,7 +3,8 @@ import sys
 sys.path.append(str(Path().parent.absolute()))
 import sqlite3
 from typing import Optional
-from smarthouse.domain import Measurement, SmartHouse
+from smarthouse.domain import Actuator, Sensor, Device, Measurement, SmartHouse
+from datetime import datetime
 
 class SmartHouseRepository:
     """
@@ -27,30 +28,73 @@ class SmartHouseRepository:
         """
         return self.conn.cursor()
 
-    def reconnect(self):
-        self.conn.close()
-        self.conn = sqlite3.connect(self.file)
-
-    
     def load_smarthouse_deep(self):
         """
-        This method retrives the complete single instance of the _SmartHouse_ 
-        object stored in this database. The retrieval yields a _deep_ copy, i.e.
-        all referenced objects within the object structure (e.g. floors, rooms, devices) 
-        are retrieved as well. 
+        Retrieves the SmartHouse object along with all rooms from the database.
         """
-        # TODO: START here! remove the following stub implementation and implement this function 
-        #       by retrieving the data from the database via SQL `SELECT` statements.
-        return NotImplemented
+        house = SmartHouse()
+        c = self.conn.cursor()
+
+        # Load floors dynamically based on the rooms table
+        c.execute("SELECT DISTINCT floor FROM rooms ORDER BY floor")
+        floors = {}
+        for (floor_level,) in c.fetchall():
+            floor = house.register_floor(floor_level)
+            floors[floor_level] = floor  # Store floors for room registration
+
+        # Load rooms and assign to correct floors
+        rooms = {}
+        c.execute("SELECT id, floor, area, name FROM rooms")
+        for room_id, floor_level, room_size, room_name in c.fetchall():
+            if floor_level in floors:
+                room = house.register_room(floors[floor_level], room_size, room_name)
+                rooms[room_id] = room  # Store rooms for device registration
+
+        # Load devices and assign to rooms
+        c.execute("SELECT id, room, kind, category, supplier, product FROM devices")
+        for device_id, room_id, kind, category, supplier, product in c.fetchall():
+            if room_id in rooms:
+                # Determine device type based on `kind`
+                if kind.lower() == "sensor":
+                    device = Sensor(device_id, product, supplier, category)
+                elif kind.lower() == "actuator":
+                    device = Actuator(device_id, product, supplier, category)
+                else:
+                    device = Device(device_id, product, supplier, category)
+
+                # Register the device to the corresponding room
+                house.register_device(rooms[room_id], device)
+
+        c.close()
+        return house
 
 
-    def get_latest_reading(self, sensor) -> Optional[Measurement]:
+    def get_latest_reading(self, device) -> Optional[Measurement]:
         """
         Retrieves the most recent sensor reading for the given sensor if available.
         Returns None if the given object has no sensor readings.
         """
         # TODO: After loading the smarthouse, continue here
-        return NotImplemented
+
+        house = SmartHouse()
+        c = self.conn.cursor()
+
+        # Load floors dynamically based on the rooms table
+        c.execute("SELECT device, ts, value, unit FROM measurements")
+        latest_time = None
+        measurement = None
+        for device_id, measurement_ts, Measurement_value, Measurement_unit in c.fetchall():
+            
+            if device_id == device.id:
+                dt = datetime.strptime(measurement_ts, "%Y-%m-%d %H:%M:%S")
+                
+                if latest_time is None or dt > latest_time:
+                    latest_time = dt
+                    measurement = Measurement(measurement_ts,Measurement_value,Measurement_unit)    
+
+
+        return measurement
+
 
 
     def update_actuator_state(self, actuator):
@@ -92,8 +136,3 @@ class SmartHouseRepository:
         # TODO: implement
         return NotImplemented
 
-repo = SmartHouseRepository("smarthouse/db.sql")
-cursor = repo.cursor()
-cursor.execute("SELECT * FROM devices")
-print(cursor.fetchall())
-cursor.close()
