@@ -38,7 +38,7 @@ class SmartHouseRepository:
         """
         house = SmartHouse()
         c = self.conn.cursor()
-        d = self.conn.cursor()
+        
 
         # Load floors dynamically based on the rooms table
         c.execute("SELECT DISTINCT floor FROM rooms ORDER BY floor")
@@ -64,6 +64,7 @@ class SmartHouseRepository:
                     device = Sensor(device_id, product, supplier, category)
                 elif category.lower() == "actuator":
                     device = Actuator(device_id, product, supplier, category)
+                    self.update_actuator_from_db(device)
 
                 else:
                     device = Device(device_id, product, supplier, category)
@@ -73,6 +74,9 @@ class SmartHouseRepository:
 
         c.close()
         return house
+    
+
+    
 
 
     def get_latest_reading(self, device) -> Optional[Measurement]:
@@ -82,7 +86,7 @@ class SmartHouseRepository:
         """
         # TODO: After loading the smarthouse, continue here
 
-        house = SmartHouse()
+        
         c = self.conn.cursor()
 
         
@@ -102,6 +106,25 @@ class SmartHouseRepository:
         c.close()
         return measurement
 
+    def update_actuator_from_db(self, device):
+        c = self.conn.cursor()
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='actuator'")
+        if c.fetchone() is None:
+            c.execute("CREATE TABLE actuator(id TEXT PRIMARY KEY, active BOOLEAN, value REAL)")
+
+        c.execute("SELECT id FROM actuator WHERE id = ?", (device.id,))
+
+        if c.fetchone() == None:
+            c.execute("INSERT INTO actuator (id, active, value) VALUES (?, ?, ?)", (device.id, device.state, device.value))
+        else:
+            c.execute("SELECT id, active, value FROM actuator")
+            for db_id, db_active, db_velue in c.fetchall():
+                if db_id == device.id:
+                    device.state = db_active
+                    device.value = db_velue
+
+
+
 
 
     def update_actuator_state(self, device):
@@ -115,20 +138,18 @@ class SmartHouseRepository:
 
         c = self.conn.cursor()
 
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='actuator'")
-        if c.fetchone() is None:
-            c.execute("CREATE TABLE actuator(id TEXT PRIMARY KEY, active BOOLEAN, value REAL)")
         
-        state = None if isinstance(device.state, bool) else device.state 
+        
+         
 
         c.execute("SELECT id FROM actuator WHERE id = ?", (device.id,))
         if c.fetchone() == None:
-            state = device.state
             
-            c.execute("INSERT INTO actuator (id, active, value) VALUES (?, ?, ?)", (device.id, device.is_active(), state))
+            
+            c.execute("INSERT INTO actuator (id, active, value) VALUES (?, ?, ?)", (device.id, device.state, device.value))
 
         else:
-            c.execute("UPDATE actuator SET active = ?, value = ? WHERE id = ?", (device.is_active(), state, device.id))
+            c.execute("UPDATE actuator SET active = ?, value = ? WHERE id = ?", (device.state, device.value, device.id))
 
         self.conn.commit()
         c.close()

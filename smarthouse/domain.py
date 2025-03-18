@@ -58,6 +58,7 @@ class Actuator(Device):
     def __init__(self, id: str, model_name: str, supplier: str, device_type: str):
         super().__init__(id, model_name, supplier, device_type)
         self.state : Union[float, bool] = False
+        self.value = None
 
     def is_actuator(self) -> bool:
         return True
@@ -67,15 +68,18 @@ class Actuator(Device):
 
     def turn_on(self, target_value: Optional[float] = None):
         if target_value:
-            self.state = target_value
+            self.value = target_value
+            self.state = True
         else:
             self.state = True
+            
 
     def turn_off(self):
-        self.state = False 
+        self.state = False
+        self.value = None 
 
     def is_active(self) -> bool:
-        return self.state is not False
+        return self.state
 
 
 class ActuatorWithSensor(Actuator, Sensor):
