@@ -27,6 +27,10 @@ class SmartHouseRepository:
         you are done with issuing SQL commands.
         """
         return self.conn.cursor()
+    
+    def reconnect(self):
+        self.conn.close()
+        self.conn = sqlite3.connect(self.file)
 
     def load_smarthouse_deep(self):
         """
@@ -34,6 +38,7 @@ class SmartHouseRepository:
         """
         house = SmartHouse()
         c = self.conn.cursor()
+        d = self.conn.cursor()
 
         # Load floors dynamically based on the rooms table
         c.execute("SELECT DISTINCT floor FROM rooms ORDER BY floor")
@@ -55,10 +60,11 @@ class SmartHouseRepository:
         for device_id, room_id, kind, category, supplier, product in c.fetchall():
             if room_id in rooms:
                 # Determine device type based on `kind`
-                if kind.lower() == "sensor":
+                if category.lower() == "sensor":
                     device = Sensor(device_id, product, supplier, category)
-                elif kind.lower() == "actuator":
+                elif category.lower() == "actuator":
                     device = Actuator(device_id, product, supplier, category)
+
                 else:
                     device = Device(device_id, product, supplier, category)
 
@@ -79,8 +85,9 @@ class SmartHouseRepository:
         house = SmartHouse()
         c = self.conn.cursor()
 
-        # Load floors dynamically based on the rooms table
+        
         c.execute("SELECT device, ts, value, unit FROM measurements")
+        
         latest_time = None
         measurement = None
         for device_id, measurement_ts, Measurement_value, Measurement_unit in c.fetchall():
@@ -92,12 +99,12 @@ class SmartHouseRepository:
                     latest_time = dt
                     measurement = Measurement(measurement_ts,Measurement_value,Measurement_unit)    
 
-
+        c.close()
         return measurement
 
 
 
-    def update_actuator_state(self, actuator):
+    def update_actuator_state(self, device):
         """
         Saves the state of the given actuator in the database. 
         """
@@ -105,7 +112,27 @@ class SmartHouseRepository:
         #       by creating a new table (`CREATE`), adding some data to it (`INSERT`) first, and then issue
         #       and SQL `UPDATE` statement. Remember also that you will have to call `commit()` on the `Connection`
         #       stored in the `self.conn` instance variable.
-        pass
+
+        c = self.conn.cursor()
+
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='actuator'")
+        if c.fetchone() is None:
+            c.execute("CREATE TABLE actuator(id TEXT PRIMARY KEY, active BOOLEAN, value REAL)")
+        
+        state = None if isinstance(device.state, bool) else device.state 
+
+        c.execute("SELECT id FROM actuator WHERE id = ?", (device.id,))
+        if c.fetchone() == None:
+            state = device.state
+            
+            c.execute("INSERT INTO actuator (id, active, value) VALUES (?, ?, ?)", (device.id, device.is_active(), state))
+
+        else:
+            c.execute("UPDATE actuator SET active = ?, value = ? WHERE id = ?", (device.is_active(), state, device.id))
+
+        self.conn.commit()
+        c.close()
+       
 
 
     # statistics

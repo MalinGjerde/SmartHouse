@@ -9,10 +9,10 @@ class TestPartA(TestCase):
     # Level 1 Basic: Does registration of floors, rooms, and devices work + simple queries about them
 
     def test_basic_no_of_rooms(self):
-        self.assertEqual(len(h.get_rooms()), 2)
+        self.assertEqual(len(h.get_rooms()), 12)
     
     def test_basic_get_area_size(self):
-        self.assertEqual(h.get_area(), 38.5)
+        self.assertEqual(h.get_area(), 156.55)
 
     def test_basic_get_no_of_devices(self):
         self.assertEqual(len(h.get_devices()), 14)

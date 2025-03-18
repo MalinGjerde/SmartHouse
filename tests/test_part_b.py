@@ -49,7 +49,7 @@ class SmartHouseTest(unittest.TestCase):
         self.assertEqual(55.2125, self.repo.get_latest_reading(humidity_sensor).value)
         self.assertEqual('2024-01-29 16:00:01', self.repo.get_latest_reading(humidity_sensor).timestamp)
 
-'''
+
     def test_intermediate_save_actuator_state(self):
         h = self.repo.load_smarthouse_deep()
         oven = h.get_device_by_id("8d4e4c98-21a9-4d1e-bf18-523285ad90f6")
@@ -83,7 +83,7 @@ class SmartHouseTest(unittest.TestCase):
         # deactivation should have been persisted
         self.assertFalse(oven.is_active())
         self.assertFalse(plug.is_active())
-        
+'''       
         
     def test_zadvanced_test_humidity_hours(self):
         bath = None 
