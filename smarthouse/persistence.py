@@ -92,6 +92,10 @@ class SmartHouseRepository:
         # TODO: implement
         return NotImplemented
 
-repo = SmartHouseRepository("smarthouse/db.sql")
+repo = SmartHouseRepository("data/db.sql")
 cursor = repo.cursor()
-cursor.close()cursor.close()
+cursor.execute("SELECT * FROM devices d")
+result = cursor.fetchall()
+for row in result:
+    print(row)
+cursor.close()
