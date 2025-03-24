@@ -16,12 +16,13 @@ class Measurement:
 
 class Device:
 
-    def __init__(self, id: str, model_name: str, supplier: str, device_type: str):
+    def __init__(self, id: str, model_name: str, supplier: str, device_type: str, device_kind: str):
         self.id = id
         self.model_name = model_name 
         self.supplier = supplier
         self.device_type = device_type
         self.room : Optional[Room] = None
+        self.device_kind = device_kind
 
     def get_device_type(self) -> str:
         return self.device_type
@@ -37,8 +38,8 @@ class Device:
 
 class Sensor(Device):
 
-    def __init__(self, id: str, model_name: str, supplier: str, device_type: str, unit: str = ""):
-        super().__init__(id, model_name, supplier, device_type)
+    def __init__(self, id: str, model_name: str, supplier: str, device_type: str, device_kind: str, unit: str = ""):
+        super().__init__(id, model_name, supplier, device_type, device_kind)
         self.unit = unit
 
     def is_sensor(self) -> bool:
@@ -55,8 +56,8 @@ class Sensor(Device):
 
 class Actuator(Device):
 
-    def __init__(self, id: str, model_name: str, supplier: str, device_type: str):
-        super().__init__(id, model_name, supplier, device_type)
+    def __init__(self, id: str, model_name: str, supplier: str, device_type: str, device_kind: str):
+        super().__init__(id, model_name, supplier, device_type, device_kind)
         self.state : Union[float, bool] = False
         self.value = None
 
@@ -84,8 +85,8 @@ class Actuator(Device):
 
 class ActuatorWithSensor(Actuator, Sensor):
 
-    def __init__(self, id: str, model_name: str, supplier: str, device_type: str):
-        super().__init__(id, model_name, supplier, device_type)
+    def __init__(self, id: str, model_name: str, supplier: str, device_type: str, device_kind: str):
+        super().__init__(id, model_name, supplier, device_type, device_kind)
 
     def is_actuator(self) -> bool:
         return True

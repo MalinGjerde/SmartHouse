@@ -3,7 +3,7 @@ import sys
 sys.path.append(str(Path().parent.absolute()))
 import sqlite3
 from typing import Optional
-from smarthouse.domain import Actuator, Sensor, Device, Measurement, SmartHouse
+from smarthouse.domain import Actuator, Sensor, ActuatorWithSensor, Device, Measurement, SmartHouse
 from datetime import datetime
 
 class SmartHouseRepository:
@@ -40,14 +40,14 @@ class SmartHouseRepository:
         c = self.conn.cursor()
         
 
-        # Load floors dynamically based on the rooms table
+        
         c.execute("SELECT DISTINCT floor FROM rooms ORDER BY floor")
         floors = {}
         for (floor_level,) in c.fetchall():
             floor = house.register_floor(floor_level)
-            floors[floor_level] = floor  # Store floors for room registration
+            floors[floor_level] = floor  
 
-        # Load rooms and assign to correct floors
+        
         rooms = {}
         c.execute("SELECT id, floor, area, name FROM rooms")
         for room_id, floor_level, room_size, room_name in c.fetchall():
@@ -55,21 +55,26 @@ class SmartHouseRepository:
                 room = house.register_room(floors[floor_level], room_size, room_name)
                 rooms[room_id] = room  # Store rooms for device registration
 
-        # Load devices and assign to rooms
+        
         c.execute("SELECT id, room, kind, category, supplier, product FROM devices")
         for device_id, room_id, kind, category, supplier, product in c.fetchall():
             if room_id in rooms:
-                # Determine device type based on `kind`
-                if category.lower() == "sensor":
-                    device = Sensor(device_id, product, supplier, category)
+                
+                if category.lower() == "actuator" and kind.lower() == 'heat pump':
+                    device = ActuatorWithSensor(device_id, product, supplier, category, kind)
+                    self.update_actuator_from_db(device)
+                    
+
+                elif category.lower() == "sensor":
+                    device = Sensor(device_id, product, supplier, category, kind)
                 elif category.lower() == "actuator":
-                    device = Actuator(device_id, product, supplier, category)
+                    device = Actuator(device_id, product, supplier, category, kind)
                     self.update_actuator_from_db(device)
 
                 else:
                     device = Device(device_id, product, supplier, category)
 
-                # Register the device to the corresponding room
+                
                 house.register_device(rooms[room_id], device)
 
         c.close()
@@ -156,7 +161,7 @@ class SmartHouseRepository:
        
 
 
-    # statistics
+    
 
     
     def calc_avg_temperatures_in_room(self, room, from_date: Optional[str] = None, until_date: Optional[str] = None) -> dict:
@@ -171,7 +176,45 @@ class SmartHouseRepository:
         """
         # TODO: This and the following statistic method are a bit more challenging. Try to design the respective 
         #       SQL statements first in a SQL editor like Dbeaver and then copy it over here.  
-        return NotImplemented
+
+        if not from_date:
+            from_date = '0'
+
+        if not until_date:
+            until_date = 'None'
+
+        device = None
+        
+
+        for r in room.devices:
+            if r.device_kind.lower() == "heat pump" or r.device_kind.lower() == "temperature sensor":
+                device = r
+
+        
+
+        if device is None:
+            return {}
+
+
+        c = self.conn.cursor()
+        c.execute('''
+        SELECT DATE(ts) AS date, AVG(value) 
+        FROM measurements
+        WHERE device = ?
+        AND DATE(ts) >= ?
+        AND DATE(ts) <= ?
+        GROUP BY date
+        ''', (device.id, from_date, until_date))
+
+        result = {row[0]: row[1] for row in c.fetchall()}
+        
+        
+
+        c.close()
+        return result
+
+
+        
 
     
     def calc_hours_with_humidity_above(self, room, date: str) -> list:
@@ -182,5 +225,33 @@ class SmartHouseRepository:
         The result is a (possibly empty) list of number representing hours [0-23].
         """
         # TODO: implement
-        return NotImplemented
+
+        c = self.conn.cursor()
+        device = None
+        for r in room.devices:
+            if r.device_kind.lower() == "humidity sensor":
+                device = r
+
+
+        c.execute('SELECT AVG(value) FROM measurements WHERE device = ? AND DATE(ts) = ?', (device.id, date))
+        avg = c.fetchone()[0]
+
+        c.execute('''
+        SELECT strftime('%H', ts) AS hour
+        FROM measurements
+        WHERE device = ? AND DATE(ts) = ? AND value > ?
+        GROUP BY hour
+        HAVING COUNT(*) > 3
+        ''', (device.id, date, avg))
+
+        hours = [int(row[0]) for row in c.fetchall()]
+
+        c.close()
+        return hours
+
+
+
+
+
+        
 

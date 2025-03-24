@@ -83,7 +83,7 @@ class SmartHouseTest(unittest.TestCase):
         # deactivation should have been persisted
         self.assertFalse(oven.is_active())
         self.assertFalse(plug.is_active())
-'''       
+       
         
     def test_zadvanced_test_humidity_hours(self):
         bath = None 
@@ -136,7 +136,7 @@ class SmartHouseTest(unittest.TestCase):
         self.assertEqual(expected3.keys(), actual3.keys())
         for k in expected3.keys():
             self.assertAlmostEqual(expected3[k], actual3[k], 3)
-'''
+
 
 
 
